@@ -9,6 +9,7 @@
 
   let selectedPromptId = null;
 
+  // 移动条目到目标序号
   async function movePromptToIndex(prompt_id, targetIndex) {
     await updatePresetWith(
       'in_use',
@@ -22,14 +23,19 @@
         preset.prompts.splice(targetIndex, 0, item);
         return preset;
       },
-      { render: 'immediate' },
+      { render: 'immediate' }
     );
     selectedPromptId = null;
-    $('.completion_prompt_manager_prompt.pm-selected').removeClass('pm-selected');
+    $('.completion_prompt_manager_prompt.pm-selected')
+      .removeClass('pm-selected')
+      .find('.prompt-manager-select-action')
+      .removeClass('fa-square-check')
+      .addClass('fa-square');
   }
 
+  // 创建顶部移动按钮
   function ensureGlobalMoveButton() {
-    const $header = $('#completion_prompt_manager .prompt_manager_header');
+    const $header = $('#completion_prompt_manager .prompt_manager_header, #completion_prompt_manager_header');
     if (!$header.length || $header.find('.prompt-manager-move-selected').length) return;
 
     const $btn = $('<button class="prompt-manager-move-selected btn">移动已选条目</button>').on('click', async () => {
@@ -48,34 +54,43 @@
       }
       await movePromptToIndex(selectedPromptId, num - 1);
     });
+
     $header.append($btn);
   }
 
+  // 给每个条目增加选择按钮
   function addSelectButton($prompts) {
-    const $controls = $prompts.find('.prompt_manager_prompt_controls');
-    $controls.find('.prompt-manager-select-action').remove();
-    $controls.prepend(
-      $('<span title="select" class="prompt-manager-select-action fa-regular fa-square fa-xs"></span>').on('click', function () {
+    $prompts.find('.prompt_manager_prompt_controls').each(function () {
+      const $controls = $(this);
+      if ($controls.find('.prompt-manager-select-action').length) return;
+
+      const $span = $('<span title="select" class="prompt-manager-select-action fa-regular fa-square fa-xs"></span>').on('click', function () {
         const $thisPrompt = $(this).closest('.completion_prompt_manager_prompt');
         const id = $thisPrompt.attr('data-pm-identifier');
         if (selectedPromptId === id) {
+          // 取消选中
           selectedPromptId = null;
           $thisPrompt.removeClass('pm-selected');
           $(this).removeClass('fa-square-check').addClass('fa-square');
         } else {
+          // 取消之前选中
           $('.completion_prompt_manager_prompt.pm-selected')
             .removeClass('pm-selected')
             .find('.prompt-manager-select-action')
             .removeClass('fa-square-check')
             .addClass('fa-square');
+          // 当前选中
           selectedPromptId = id;
           $thisPrompt.addClass('pm-selected');
           $(this).removeClass('fa-square').addClass('fa-square-check');
         }
-      }),
-    );
+      });
+
+      $controls.prepend($span);
+    });
   }
 
+  // 核心替换工具箱函数
   function replace_toolbox() {
     observer.disconnect();
     const $prompts = $('.completion_prompt_manager_prompt');
