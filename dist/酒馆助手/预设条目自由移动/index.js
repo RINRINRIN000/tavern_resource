@@ -3,7 +3,7 @@
     checkMinimumVersion('3.4.4', '预设条目可视化移动');
   }
 
-  // 打开第一个弹窗：选择要移动的条目
+  // ===== 弹窗选择条目 =====
   async function selectPrompts() {
     const preset = getPreset('in_use');
     if (!preset || !preset.prompts.length) {
@@ -13,7 +13,6 @@
 
     let selectedIds = [];
 
-    // 构建 HTML 列表
     const html = $('<div style="max-height:400px;overflow:auto;"></div>');
     preset.prompts.forEach(p => {
       const $label = $(`<label style="display:block;margin:4px 0;">
@@ -22,7 +21,6 @@
       html.append($label);
     });
 
-    // 弹窗选择条目
     await SillyTavern.callGenericPopup(html[0], SillyTavern.POPUP_TYPE.CUSTOM, {
       title: '选择要移动的条目',
       buttons: ['确定', '取消'],
@@ -38,18 +36,16 @@
     moveStep(selectedIds);
   }
 
-  // 第二步：显示所有条目，给选中条目旁加移动按钮
+  // ===== 第二步：移动条目 =====
   async function moveStep(selectedIds) {
     const preset = getPreset('in_use');
     if (!preset) return;
 
-    // 克隆条目用于前端显示
     const html = $('<div style="max-height:400px;overflow:auto;"></div>');
     preset.prompts.forEach((p, idx) => {
       const $row = $(`<div style="display:flex;justify-content:space-between;margin:4px 0;">
         <span>${p.name || p.id}</span>
       </div>`);
-      // 如果是选中的条目，加移动按钮
       if (selectedIds.includes(p.id)) {
         const $btn = $('<button>移动至上方</button>').on('click', async () => {
           await updatePresetWith('in_use', preset => {
@@ -74,7 +70,7 @@
     await SillyTavern.callGenericPopup(html[0], SillyTavern.POPUP_TYPE.CUSTOM, {title:'移动条目'});
   }
 
-  // 顶部按钮触发
+  // ===== 顶部按钮触发 =====
   function addMainButton() {
     const $header = $('#completion_prompt_manager .prompt_manager_header, #completion_prompt_manager_header');
     if (!$header.length || $header.find('.prompt-manager-visual-move').length) return;
@@ -86,6 +82,7 @@
     $header.append($btn);
   }
 
+  // ===== 初始化 =====
   const observer = new MutationObserver(() => {
     addMainButton();
   });
