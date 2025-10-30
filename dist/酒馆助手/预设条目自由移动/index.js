@@ -3,6 +3,12 @@
     checkMinimumVersion('3.4.4', '预设条目可视化移动');
   }
 
+  // ===== 清理旧元素 =====
+  function cleanOldUI() {
+    $('.prompt-manager-select-action').remove();
+    $('.completion_prompt_manager_prompt.pm-selected').removeClass('pm-selected');
+  }
+
   // ===== 弹窗选择条目 =====
   async function selectPrompts() {
     const preset = getPreset('in_use');
@@ -72,14 +78,20 @@
 
   // ===== 顶部按钮触发 =====
   function addMainButton() {
-    const $header = $('#completion_prompt_manager .prompt_manager_header, #completion_prompt_manager_header');
-    if (!$header.length || $header.find('.prompt-manager-visual-move').length) return;
+    cleanOldUI();
+
+    // 尝试多个常用位置
+    const $header = $('#completion_prompt_manager .prompt_manager_header, #completion_prompt_manager_header, .quick_reply_buttons');
+    if (!$header.length) return;
+
+    if ($header.find('.prompt-manager-visual-move').length) return;
 
     const $btn = $('<button class="prompt-manager-visual-move btn">可视化移动条目</button>').on('click', () => {
       selectPrompts();
     });
 
-    $header.append($btn);
+    // 放在第一个找到的 header 或快捷按钮区
+    $header.first().append($btn);
   }
 
   // ===== 初始化 =====
